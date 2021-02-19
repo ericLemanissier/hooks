@@ -80,9 +80,23 @@ class MatrixGenerator:
                 except subprocess.CalledProcessError:
                     return False
 
-            if not _package_exists(ref):
+            if True:
                 try:
                     subprocess.run(["conan", "install", ref], check=False)
+                except subprocess.CalledProcessError as ex:
+                    if ex.returncode != 6:
+                        raise
+                try:
+                    res = subprocess.run(["conan", "inspect", ref, "--raw=default_options"], check=False, capture_output=True, text=True)
+                    if "shared=True" in res.stdout:
+                        shared_value="False"
+                    elif "shared=False" in res.stdout:
+                        shared_value="True"
+                    else:
+                        shared_value=None
+                    if shared_value:
+                        subprocess.run(["conan", "install", ref, "-o", "%s:shared=%s" % (ref, shared_value)], check=False)
+
                 except subprocess.CalledProcessError as ex:
                     if ex.returncode != 6:
                         raise
