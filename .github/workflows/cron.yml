@@ -48,3 +48,52 @@ jobs:
         run: |
           pip3 install pyyaml requests aiohttp
           python3 main.py
+
+  Windows:
+    runs-on: windows-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+        with:
+          python-version: "3.8"
+
+      - name: install conan
+        run: pip install conan --ignore-installed
+
+      - name: install hooks
+        run: |
+          conan config install hooks -tf hooks
+          conan config set hooks.conan-center
+      - name: run
+        env:
+          CONAN_HOOK_ERROR_LEVEL: 40
+        run: |
+          pip install pyyaml requests aiohttp
+          python main.py
+
+  macOS:
+    runs-on: macos-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+        with:
+          python-version: "3.8"
+
+      - name: install conan
+        run: pip install conan --ignore-installed
+
+      - name: install hooks
+        run: |
+          conan config install hooks -tf hooks
+          conan config set hooks.conan-center
+      - name: run
+        env:
+          CONAN_ENV_COMPILER_VERSION: 11.0
+          CONAN_HOOK_ERROR_LEVEL: 40
+        run: |
+          pip install pyyaml requests aiohttp
+          python main.py
