@@ -43,7 +43,8 @@ jobs:
       - name: run
         shell: bash
         env:
-          CONAN_SYSREQUIRES_MODE: disabled
+          CONAN_SYSREQUIRES_MODE: enabled
+          DEBIAN_FRONTEND: noninteractive
           CONAN_HOOK_ERROR_LEVEL: 40
         run: |
           pip3 install pyyaml requests aiohttp
