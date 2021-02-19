@@ -93,7 +93,7 @@ jobs:
           conan config set hooks.conan-center
       - name: run
         env:
-          CONAN_ENV_COMPILER_VERSION: 11.0
+          CONAN_ENV_COMPILER_VERSION: "11.0"
           CONAN_HOOK_ERROR_LEVEL: 40
         run: |
           pip install pyyaml requests aiohttp
