@@ -52,7 +52,8 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H051": "DEFAULT OPTIONS AS DICTIONARY",
              "KB-H052": "CONFIG.YML HAS NEW VERSION",
              "KB-H053": "PRIVATE IMPORTS",
-             "KB-H054": "LIBRARY DOES NOT EXIST"
+             "KB-H054": "LIBRARY DOES NOT EXIST",
+             "KB-H055": "SINGLE REQUIRES",
              }
 
 
@@ -597,6 +598,15 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             test_package_content = tools.load(test_package_path)
             _check_private_imports("test_package/conanfile.py", test_package_content)
 
+    @run_test("KB-H055", output)
+    def test(out):
+        for prefix in ["", "build_"]:
+            if hasattr(conanfile, "{}requires".format(prefix)) and \
+               callable(getattr(conanfile, "{}requirements".format(prefix), None)):
+                out.error("Both '{0}requires' attribute and '{0}requirements()' method should not "
+                          "be declared at same recipe.".format(prefix))
+
+
 @raise_if_error_output
 def post_export(output, conanfile, conanfile_path, reference, **kwargs):
     export_folder_path = os.path.dirname(conanfile_path)
@@ -622,7 +632,7 @@ def post_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H050", output)
     def test(out):
-        if conanfile.name in ["opencl-icd-loader", "paho-mqtt-c", "tbb", "pdal"]:
+        if conanfile.name in ["opencl-icd-loader", "paho-mqtt-c", "tbb", "pdal", "vulkan-loader"]:
             out.info("'{}' is part of the allowlist, skipping.".format(conanfile.name))
             return
 
@@ -731,7 +741,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H013", output)
     def test(out):
-        if conanfile.name in ["cmake", "android-ndk"]:
+        if conanfile.name in ["cmake", "android-ndk", "zulu-openjdk"]:
             return
         known_folders = ["lib", "bin", "include", "res", "licenses"]
         for filename in os.listdir(conanfile.package_folder):
@@ -749,7 +759,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
     def test(out):
         if conanfile.version == "system":
             return
-        
+
         # INFO: Whitelist for package names
         if conanfile.name in ["ms-gsl", "cccl", "poppler-data", "extra-cmake-modules", "gnu-config", "autoconf", "automake"]:
             return
@@ -805,6 +815,8 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H021", output)
     def test(out):
+        if conanfile.name in ["powershell"]:
+            return
         bad_files = _get_files_following_patterns(conanfile.package_folder,
                                                   ["msvcr*.dll", "msvcp*.dll", "vcruntime*.dll", "concrt*.dll"])
         if bad_files:
@@ -845,7 +857,7 @@ def post_package_info(output, conanfile, reference, **kwargs):
     @run_test("KB-H054", output)
     def test(out):
         def _test_component(component):
-            libs_to_search = component.libs
+            libs_to_search = list(component.libs)
             for p in component.libdirs:
                 libs_found = tools.collect_libs(conanfile, p)
                 if not libs_found:
